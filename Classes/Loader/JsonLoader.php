@@ -55,10 +55,10 @@ class JsonLoader implements LoaderInterface
         return $this->tableDefinitionCollection;
     }
 
-    public function write(TableDefinitionCollection $tableDefinitionCollection): void
+    public function write(TableDefinitionCollection $tableDefinitionCollection): array
     {
         $file = MaskUtility::getFileAbsFileName($this->maskExtensionConfiguration['json']);
-        GeneralUtility::writeFile($file, json_encode($tableDefinitionCollection->toArray(), 4194304 | JSON_PRETTY_PRINT)); // @todo replace with JSON_THROW_ON_ERROR in Mask v8.0
         $this->tableDefinitionCollection = $tableDefinitionCollection;
+        return [GeneralUtility::writeFile($file, json_encode($tableDefinitionCollection->toArray(), 4194304 | JSON_PRETTY_PRINT))]; // @todo replace with JSON_THROW_ON_ERROR in Mask v8.0
     }
 }

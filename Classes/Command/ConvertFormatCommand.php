@@ -17,6 +17,8 @@ declare(strict_types=1);
 
 namespace MASK\Mask\Command;
 
+use MASK\Mask\Loader\JsonLoader;
+use MASK\Mask\Loader\JsonSplitLoader;
 use MASK\Mask\Loader\LoaderRegistry;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -75,8 +77,21 @@ class ConvertFormatCommand extends Command
             $targetLoader = $sourceLoader;
         }
 
-        $targetLoader->write($sourceLoader->load());
-
-        return 1;
+        $resultCode = 0;
+        $result = $targetLoader->write($sourceLoader->load());
+        if ($targetLoader instanceof JsonLoader) {
+            if (!$result[0]) {
+                $output->writeln('An error occurred while saving the elements json"');
+                $resultCode = 1;
+            }
+        } elseif ($targetLoader instanceof JsonSplitLoader) {
+            foreach ($result as $elementKey => $val) {
+                if (!$val) {
+                    $output->writeln(sprintf('An error occurred while saving the element "%s"', $elementKey));
+                    $resultCode = 1;
+                }
+            }
+        }
+        return $resultCode;
     }
 }

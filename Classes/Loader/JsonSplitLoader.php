@@ -72,14 +72,15 @@ class JsonSplitLoader implements LoaderInterface
         return $this->tableDefinitionCollection;
     }
 
-    public function write(TableDefinitionCollection $tableDefinitionCollection): void
+    public function write(TableDefinitionCollection $tableDefinitionCollection): array
     {
         // Write content elements and backend layouts
-        $this->writeElementsForTable($tableDefinitionCollection, 'tt_content');
-        $this->writeElementsForTable($tableDefinitionCollection, 'pages');
+        $saveResultsTtContent = $this->writeElementsForTable($tableDefinitionCollection, 'tt_content');
+        $saveResultsPages = $this->writeElementsForTable($tableDefinitionCollection, 'pages');
 
         // Save new definition in memory.
         $this->tableDefinitionCollection = $tableDefinitionCollection;
+        return array_merge($saveResultsTtContent, $saveResultsPages);
     }
 
     protected function checkIfPathIsDefined(string $table): void
@@ -112,10 +113,10 @@ class JsonSplitLoader implements LoaderInterface
         return $definitionArray;
     }
 
-    protected function writeElementsForTable(TableDefinitionCollection $tableDefinitionCollection, string $table): void
+    protected function writeElementsForTable(TableDefinitionCollection $tableDefinitionCollection, string $table): array
     {
         if (!$tableDefinitionCollection->hasTable($table)) {
-            return;
+            return [];
         }
 
         $this->checkIfPathIsDefined($table);
@@ -138,6 +139,7 @@ class JsonSplitLoader implements LoaderInterface
         }
 
         $tableDefinition = $tableDefinitionCollection->getTable($table);
+        $saveResults = [];
         $sorting = 0;
         foreach ($tableDefinition->elements as $element) {
             $elementTableDefinitionCollection = new TableDefinitionCollection();
@@ -207,7 +209,9 @@ class JsonSplitLoader implements LoaderInterface
             $elementTableDefinitionCollection->addTable($newTableDefinition);
 
             // @todo replace with JSON_THROW_ON_ERROR in Mask v8.0
-            GeneralUtility::writeFile($absolutePath . '/' . $element->key . '.json', json_encode($elementTableDefinitionCollection->toArray(), 4194304 | JSON_PRETTY_PRINT) . "\n");
+            $saveResults[$element->key] = GeneralUtility::writeFile($absolutePath . '/' . $element->key . '.json', json_encode($elementTableDefinitionCollection->toArray(), 4194304 | JSON_PRETTY_PRINT) . "\n");
         }
+
+        return $saveResults;
     }
 }

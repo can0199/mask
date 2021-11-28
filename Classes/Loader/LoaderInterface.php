@@ -37,6 +37,7 @@ interface LoaderInterface
      * Takes the table definition collection as input and writes it to the given resource.
      *
      * @param TableDefinitionCollection $tableDefinitionCollection
+     * @return array
      */
-    public function write(TableDefinitionCollection $tableDefinitionCollection): void;
+    public function write(TableDefinitionCollection $tableDefinitionCollection): array;
 }
